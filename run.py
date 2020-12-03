@@ -16,7 +16,7 @@ import pickle
 from igramscraper.instagram import Instagram
 
 class Bot:
-    def __init__(self, username, password , proxy , tagged_page):
+    def __init__(self, username, password , proxy= "learnmore2k20@gmail.com:JOfKHBr8HZ@64.225.19.160:8049" , tagged_page="fashionnova"):
         self.username = username
         self.password = password
         user_agent = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16"
@@ -29,11 +29,12 @@ class Bot:
             'proxy': {
                 'http': 'http://{}'.format(proxy),
                 'https': 'https://{}'.format(proxy),
-                'no_proxy': 'localhost,127.0.0.1,dev_server:8080'
+             
                 }
         }
-        self.bot  = webdriver.Firefox(seleniumwire_options=options , profile = profile)
+        self.bot  = webdriver.Firefox(seleniumwire_options=options , firefox_profile = profile  )
         self.bot.set_window_size(500, 950)
+        self.number_of_comments = 0
 
 
     def exit(self):
@@ -45,13 +46,13 @@ class Bot:
         bot.get('https://instagram.com/')
         time.sleep(5)
 
-        if check_exists_by_xpath(bot, "//button[text()='Accept']"):
+        if self.check_exists_by_xpath( "//button[text()='Accept']"):
             print("No cookies")
         else:
             bot.find_element_by_xpath("//button[text()='Accept']").click()
             print("Accepted cookies")
-        if os.path.isfile(os.path.join(os.getcwd(), "cookies.pkl")):
-            cookies = pickle.load(open("cookies.pkl", "rb"))
+        if os.path.isfile(os.path.join(os.getcwd(), "{}.pkl".format(self.username))):
+            cookies = pickle.load(open("{}.pkl".format(self.username), "rb"))
             for cookie in cookies:
                 bot.add_cookie(cookie)
             bot.refresh()
@@ -82,9 +83,9 @@ class Bot:
         print('Searching post by page...')
         bot = self.bot
         tags = self.tags
-        tag = tags.pop()
         
-        link = "https://www.instagram.com/{}/tagged/".format(tag)
+        
+        link = "https://www.instagram.com/{}/tagged/".format(tags)
         bot.get(link)
 
         time.sleep(4)
@@ -106,13 +107,13 @@ class Bot:
         for url in first_urls:
             if url.startswith('https://www.instagram.com/p/'):
                 self.urls.append(url)
-        return run.comment(random_comment())
+        return self.comment(self.random_comment())
 
     def comment(self, comment):
 
         if len(self.urls) == 0:
             print('Finished tag jumping to next one...')
-            return run.get_posts()
+            return self.get_posts()
 
         bot = self.bot
         url = self.urls.pop()
@@ -123,63 +124,101 @@ class Bot:
         bot.execute_script("window.scrollTo(0, window.scrollY + 300)")
         time.sleep(2)
         instagram = Instagram()
-        boolean = False
-
+        username = bot.find_element_by_xpath("/html/body/div[1]/section/main/div/div/article/header/div[2]/div[1]/div[1]/a").text
+        print(username)
+        try : 
+            image_link = bot.find_element_by_xpath("//img[@class='FFVAD']")
+            print(image_link.get_attribute("src"))
+            
+        except : 
+            time.sleep(1000)
         """bot.find_element_by_xpath(
             '/html/body/div[1]/section/main/div/div/article/div[3]/section[1]/span[1]/button').click()
         time.sleep(2)"""
+        
+        boolean = self.accountChecker(username)
+        if(boolean) :
+            try : 
+            
+                (bot.find_elements_by_class_name("wpO6b "))[2].click()
+                
+            
+            except : 
+                return self.comment(self.random_comment())
 
-        bot.find_element_by_xpath(
-            '//*[@id="react-root"]/section/main/div/div[1]/article/div[3]/section[1]/span[2]/button').click()
+           
+            find_comment_box = (
+                By.XPATH, '/html/body/div[1]/section/main/section/div[1]/form/textarea')
+            WebDriverWait(bot, 50).until(
+                EC.presence_of_element_located(find_comment_box))
+            comment_box = bot.find_element(*find_comment_box)
+            WebDriverWait(bot, 50).until(
+                EC.element_to_be_clickable(find_comment_box))
+            comment_box.click()
+            time.sleep(1)
+            comment_box.send_keys(comment)
 
-        if check_exists_by_xpath(bot, '/html/body/div[1]/section/main/section/div'):
-            print("skiped")
-            return run.comment(random_comment())
-
-        find_comment_box = (
-            By.XPATH, '/html/body/div[1]/section/main/section/div[1]/form/textarea')
-        WebDriverWait(bot, 50).until(
-            EC.presence_of_element_located(find_comment_box))
-        comment_box = bot.find_element(*find_comment_box)
-        WebDriverWait(bot, 50).until(
-            EC.element_to_be_clickable(find_comment_box))
-        comment_box.click()
-        time.sleep(1)
-        comment_box.send_keys(comment)
-
-        find_post_button = (
-            By.XPATH, '/html/body/div[1]/section/main/section/div/form/button')
-        WebDriverWait(bot, 50).until(
-            EC.presence_of_element_located(find_post_button))
-        post_button = bot.find_element(*find_post_button)
-        WebDriverWait(bot, 50).until(
-            EC.element_to_be_clickable(find_post_button))
-        post_button.click()
-
-        # edit this line to make bot faster
+            find_post_button = (
+                By.XPATH, '/html/body/div[1]/section/main/section/div/form/button')
+            WebDriverWait(bot, 50).until(
+                EC.presence_of_element_located(find_post_button))
+            post_button = bot.find_element(*find_post_button)
+            WebDriverWait(bot, 50).until(
+                EC.element_to_be_clickable(find_post_button))
+            post_button.click()
+            try : 
+                find_comment_box = (
+                By.XPATH, '/html/body/div[1]/section/main/section/div[1]/form/textarea')
+                WebDriverWait(bot, 50).until(
+                EC.presence_of_element_located(find_comment_box))
+                comment_box = bot.find_element(*find_comment_box)
+                WebDriverWait(bot, 50).until(
+                EC.element_to_be_clickable(find_comment_box))
+                print(comment_box.text)
+                self.number_of_comments =  self.number_of_comments + 1
+                print("{} number of comments {}".format(self.username , self.number_of_comments))
+            except : 
+                print("{} is on hold ".format(self.username))
+                time.sleep(1000)
+            # edit this line to make bot faster
         time.sleep(random.randint(100,300))
         # ---------------------------------
         if(time.time() - self.start > 1800) : 
             time.sleep(1800)
-        return run.comment(random_comment())
+        return self.comment(self.random_comment())
 
 
-def random_comment():
-    with open(r'comments.txt', 'r') as f:
-        commentsl = [line.strip() for line in f]
-    comments = commentsl
-    comment = random.choice(comments)
-    return comment
+    def random_comment(self):
+        with open(r'comments.txt', 'r' , encoding="utf-8") as f:
+            commentsl = f.readlines()
+        comments = commentsl
+        comment = random.choice(comments)
+        return comment
 
 
-def check_exists_by_xpath(driver, xpath):
-    try:
-        driver.find_element_by_xpath(xpath)
-    except NoSuchElementException:
-        return True
+    def check_exists_by_xpath(self, xpath):
+        try:
+            self.bot.find_element_by_xpath(xpath)
+        except NoSuchElementException:
+            return True
 
-    return False
-
+        return False
+    def accountChecker(self , username) : 
+        instagram = Instagram()
+        instagram.set_proxies({
+            'http': 'http://hp_739a8b6c:111111@167.71.74.160:7015',
+            'https': 'http://hp_739a8b6c:111111@167.71.74.160:7015'
+})
+        try : 
+            account = instagram.get_account(username)
+        
+            if(account.media_count > 5 and account.followed_by_count > 50 and account.followed_by_count <35000) : 
+                return True 
+            return False
+        except : 
+            return True
+    
+    
 
 run = Bot(usr, passw)
 run.login()

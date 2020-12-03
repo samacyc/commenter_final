@@ -1,2 +1,2 @@
-username = "nylia_ambassador"
+username = "rivaltrend_ambassador"
 password = "135462798"
